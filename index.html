@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script type="text/javascript" src="http://dapi.kakao.com/v2/maps/sdk.js?appkey=5f5e0e093b107e1e47121b469611bdd6"></script>
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+    <title>Weather</title>
+</head>
+<body onload="go()">
+    <div class="loading">
+        <img src="img/icons8-cloud-refresh.gif" alt="load">
+    </div>
+    <div id="wrap">
+        <div class="time"></div>
+        <div class="weather">
+            <div id="search">
+                <input class="citySearch" type="search" name="" id="" size="15" placeholder="지역을 검색하세요">
+                <a style="cursor:pointer" onclick="go()"><i class="fas fa-search-location"></i></a>
+            </div>
+            <section class="info">
+                <div class="icon"></div>
+                <div class="loca"></div>
+                <div class="tbox">
+                    <div class="txt"></div>
+                    <div class="temp"></div>
+                </div>
+            </section>
+            <section>
+                <p>위치를 이동해 보세요</p>
+                <div id="map"></div>
+            </section>    
+        </div>
+    </div>
+    <script>
+        // https://api.openweathermap.org/data/2.5/weather?q=mokpo&appid=8daf58dcaeaeea52af5fe843d79bb774&units=metric
+        // http://openweathermap.org/img/wn/10d@2x.png
+
+        $(window).load(function(){
+            $(".loading").fadeOut();
+        });
+
+        //카카오 맵 시작
+        var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+            mapOption = { 
+                center: new kakao.maps.LatLng(34.791328, 126.386592), // 지도의 중심좌표
+                level: 6 // 지도의 확대 레벨
+            };
+
+        var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+        // 지도를 클릭한 위치에 표출할 마커입니다
+        var marker = new kakao.maps.Marker({ 
+            // 지도 중심좌표에 마커를 생성합니다 
+            position: map.getCenter() 
+        }); 
+        // 지도에 마커를 표시합니다
+        marker.setMap(map);
+
+        // 지도에 클릭 이벤트를 등록합니다
+        // 지도를 클릭하면 마지막 파라미터로 넘어온 함수를 호출합니다
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {        
+            
+            // 클릭한 위도, 경도 정보를 가져옵니다 
+            var latlng = mouseEvent.latLng; 
+            
+            // 마커 위치를 클릭한 위치로 옮깁니다
+            marker.setPosition(latlng);
+            go(latlng.getLat(),latlng.getLng());
+
+            
+        });
+
+
+        window.addEventListener('keydown', press);
+        function press(e){
+           if(e.keyCode == 13) go();
+        }
+
+        var citySearch = document.querySelector(".citySearch");
+        var icon = document.querySelector(".icon");
+        var loca = document.querySelector(".loca");
+        var txt = document.querySelector(".txt");
+        var temp = document.querySelector(".temp");
+        var time = document.querySelector(".time");
+        var bg = document.querySelector("#wrap");
+
+        var bgImg = [
+            { url : "https://images.unsplash.com/18/trickle.JPG?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=967&q=80", weatherMain : "Rain" },
+            { url : "https://images.unsplash.com/photo-1500491460312-c32fc2dbc751?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80", weatherMain : "Clouds" }
+        ];
+
+        
+        function go(glat, glng){
+
+            var city = citySearch.value;
+
+            city = city ? city : "mokpo";
+            citySearch.value = "";
+
+            var getUrl;
+
+            if(glat && glng){
+                getUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${glat}&lon=${glng}&appid=8daf58dcaeaeea52af5fe843d79bb774&units=metric`
+            }else{
+                getUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=8daf58dcaeaeea52af5fe843d79bb774&units=metric`;
+            }
+
+            $.getJSON(getUrl,function(data){
+            //console.log(data.weather[0].icon); 
+            //[0]= 첫 번째 배열이라는 뜻.
+            icon.innerHTML = `<img src='http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png' alt=''>`
+            
+            var T = new Date(data.dt*1000);
+            
+            // var tHours = t.getHours() > 12 ? "PM " + (t.getHours() - 12) : "AM " + t.getHours();
+            // var tzero = tHour.toString().padStart(2 , '0');
+            // var tM = t.getMinutes();
+            // var tminute = tM.toString().padStart(2 , '0');
+            var tHour = T.getHours() > 12 ? "PM " + (T.getHours()-12).toString().padStart(2 , "0") : "AM " + T.getHours();
+            var tzero = tHour.toString().padStart(2 , "0");
+
+            time.innerHTML = tzero + ":" + T.getMinutes().toString().padStart(2 , "0");
+
+            // console.log(time.getFullYear()+"년" + time.getMonth()+1 +"월");
+            loca.innerHTML = data.name;
+            txt.innerHTML = data.weather[0].main;
+            temp.innerHTML = Math.floor(data.main.temp)+"&deg;C";
+
+            for(var i=0; i<bgImg.length; i++){
+                    var mainText = bgImg[i].weatherMain;
+                    
+                    if(mainText.indexOf(data.weather[0].main)==0){
+                        bg.style.background = `url(${bgImg[i].url})`;
+                        break;
+                    }else{
+                        bg.style.background = `url(${bgImg[bgImg.length].url})`;
+                    }
+                }
+                bg.style.backgroundSize = "cover";
+                bg.style.backgroundPosition = "center center";
+
+            
+            });
+
+            
+            
+
+            var color = '#';
+            var letters = ['8eb6e8', 'a8c0c0', 'FEBF36', 'FF7238', '6475A0', 'acc7bf', '5e5f67', 'c1b2d1', 'b8d18c', 'e6b6b5', '9bccc2'];
+
+            color += letters[Math.floor(Math.random() * letters.length)];
+            document.getElementById('wrap').style.background = color;
+
+        }
+
+        // var color = '#';
+        // var letters = ['8eb6e8', 'a8c0c0', 'FEBF36', 'FF7238', '6475A0', 'acc7bf', '5e5f67', 'c1b2d1', 'b8d18c', 'e6b6b5', '9bccc2'];
+
+        // color += letters[Math.floor(Math.random() * letters.length)];
+        // document.getElementById('wrap').style.background = color;
+    
+    </script>
+</body>
+</html>
