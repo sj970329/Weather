@@ -37,9 +37,14 @@
         </div>
     </div>
     <script>
-        // https://api.openweathermap.org/data/2.5/weather?q=mokpo&appid=8daf58dcaeaeea52af5fe843d79bb774&units=metric
-        // http://openweathermap.org/img/wn/10d@2x.png
 
+
+        var color = '#';
+        var letters = ['8eb6e8', 'a8c0c0', 'FEBF36', 'FF7238', '6475A0', 'acc7bf', '5e5f67', 'c1b2d1', 'b8d18c', 'e6b6b5', '9bccc2'];
+
+        color += letters[Math.floor(Math.random() * letters.length)];
+        document.getElementById('wrap').style.background = color;
+        
         $(window).load(function(){
             $(".loading").fadeOut();
         });
@@ -150,11 +155,7 @@
             
             
 
-            var color = '#';
-            var letters = ['8eb6e8', 'a8c0c0', 'FEBF36', 'FF7238', '6475A0', 'acc7bf', '5e5f67', 'c1b2d1', 'b8d18c', 'e6b6b5', '9bccc2'];
-
-            color += letters[Math.floor(Math.random() * letters.length)];
-            document.getElementById('wrap').style.background = color;
+            
 
         }
 
